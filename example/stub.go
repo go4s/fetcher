@@ -17,6 +17,7 @@ func main() {
 	g := gin.Default()
 	g.GET("/json", func(ctx *gin.Context) {
 		io.Copy(os.Stdout, ctx.Request.Body)
+		ctx.Bind()
 		defer ctx.Request.Body.Close()
 		ctx.JSON(200, ResponseBody{
 			Code:   200,

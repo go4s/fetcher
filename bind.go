@@ -12,9 +12,7 @@ const (
 	contentTypeKey = "Content-Type"
 )
 
-// HandlerBind returns the appropriate Binding instance based on the HTTP method
-// and the content type.
-func HandlerBind(response *http.Response, bean interface{}) error {
+func (m manager) Bind(response *http.Response, bean interface{}) error {
 	contentType := response.Header.Get(contentTypeKey)
 	b := binding.Get(contentType)
 	if b == nil {

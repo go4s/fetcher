@@ -47,3 +47,21 @@ func TestManager_Fetch(t *testing.T) {
 	}
 	t.Log(f.(*manager).builder.request)
 }
+
+func BenchmarkManager_Fetch(b *testing.B) {
+	bdr := NewBuilder()
+	f := bdr.Build(
+		SetMethod(http.MethodGet),
+		SetUrl("http://127.0.0.1:8080/json"),
+		SetBody(strings.NewReader("ppsp")),
+	)
+	if f == nil {
+		b.Fatal("should built")
+	}
+	var resp ResponseBody
+	for i := 0; i < b.N; i++ {
+		if err := f.Fetch(&resp); err != nil {
+			b.Fatal(err)
+		}
+	}
+}

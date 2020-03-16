@@ -39,7 +39,7 @@ func (m *manager) Fetch(ret interface{}) (err error) {
 	if resp, err = cli.Do(m.builder.request); err != nil {
 		goto ERR
 	}
-	if err = HandlerBind(resp, ret); err != nil {
+	if err = m.Bind(resp, ret); err != nil {
 		goto ERR
 	}
 	//atomic.AddInt64(&m.inflight, -1)
