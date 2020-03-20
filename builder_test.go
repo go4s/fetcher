@@ -41,9 +41,7 @@ func TestManager_Fetch(t *testing.T) {
 	}
 	t.Log(f.(*manager).req)
 	var resp2 ResponseBody
-	f = b.Build(
-		SetMethod(http.MethodGet),
-		SetUrl("http://127.0.0.1:8080/json"),
+	f.Build(
 		SetBody(strings.NewReader("s2")),
 	)
 	if err := f.Fetch(&resp2); err != nil {

@@ -14,14 +14,13 @@ import (
 type Modifier func(r *http.Request) error
 
 type Builder interface {
-	Build(...Modifier) Fetcher
+	Build(...Modifier) FetchBuilder
 }
 
 type builder struct {
-	request *http.Request
 }
 
-func (b *builder) Build(modifiers ...Modifier) Fetcher {
+func (b *builder) Build(modifiers ...Modifier) FetchBuilder {
 	req := &http.Request{
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,

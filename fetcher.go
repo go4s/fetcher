@@ -10,11 +10,16 @@ type Fetcher interface {
 	Fetch(interface{}) error
 }
 
+type FetchBuilder interface {
+	Fetcher
+	Builder
+}
+
 type manager struct {
 	//inflight        int64
 	//success, failed int64
-	pool sync.Pool
-	req  *http.Request
+	pool      sync.Pool
+	req       *http.Request
 }
 
 func (m *manager) getClient() *http.Client {
@@ -32,6 +37,14 @@ func (m *manager) closeClient(cli *http.Client, err error) {
 	m.pool.Put(cli)
 }
 
+func (m *manager) Build(modifiers ...Modifier) FetchBuilder {
+	for _, modifierFn := range modifiers {
+		if err := modifierFn(m.req); err != nil {
+			return nil
+		}
+	}
+	return m
+}
 func (m *manager) Fetch(ret interface{}) (err error) {
 	//atomic.AddInt64(&m.inflight, 1)
 	var resp *http.Response
