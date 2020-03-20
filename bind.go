@@ -18,5 +18,6 @@ func (m manager) Bind(response *http.Response, bean interface{}) error {
 	if b == nil {
 		return fmt.Errorf("err failed get bind for Content-Type %s ", contentType)
 	}
+	defer response.Body.Close()
 	return b.Bind(response, bean)
 }
