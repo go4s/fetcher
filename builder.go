@@ -14,32 +14,27 @@ import (
 type Modifier func(r *http.Request) error
 
 type Builder interface {
-	Build(...Modifier) FetcherBuilder
-}
-type FetcherBuilder interface {
-	Fetcher
-	Builder
+	Build(...Modifier) Fetcher
 }
 
 type builder struct {
 	request *http.Request
 }
 
-func (b *builder) Build(modifiers ...Modifier) FetcherBuilder {
-	if b.request == nil {
-		b.request = &http.Request{
-			Proto:      "HTTP/1.1",
-			ProtoMajor: 1,
-			ProtoMinor: 1,
-			Header:     make(http.Header),
-		}
+func (b *builder) Build(modifiers ...Modifier) Fetcher {
+	req := &http.Request{
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header:     make(http.Header),
 	}
+
 	for _, modifierFn := range modifiers {
-		if err := modifierFn(b.request); err != nil {
+		if err := modifierFn(req); err != nil {
 			return nil
 		}
 	}
-	fetcher := manager{builder: b, pool: sync.Pool{New: func() interface{} {
+	fetcher := manager{req: req, pool: sync.Pool{New: func() interface{} {
 		return &http.Client{}
 	}}}
 	return &fetcher

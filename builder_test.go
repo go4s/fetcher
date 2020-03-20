@@ -39,13 +39,17 @@ func TestManager_Fetch(t *testing.T) {
 	if err := f.Fetch(&resp); err != nil {
 		t.Fatal(err)
 	}
-	t.Log(f.(*manager).builder.request)
+	t.Log(f.(*manager).req)
 	var resp2 ResponseBody
-	f.Build(SetBody(strings.NewReader("s2")))
+	f = b.Build(
+		SetMethod(http.MethodGet),
+		SetUrl("http://127.0.0.1:8080/json"),
+		SetBody(strings.NewReader("s2")),
+	)
 	if err := f.Fetch(&resp2); err != nil {
 		t.Fatal(err)
 	}
-	t.Log(f.(*manager).builder.request)
+	t.Log(f.(*manager).req)
 }
 
 func BenchmarkManager_Fetch(b *testing.B) {

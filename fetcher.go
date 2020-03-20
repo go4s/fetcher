@@ -1,6 +1,7 @@
 package fetcher
 
 import (
+	"context"
 	"net/http"
 	"sync"
 )
@@ -13,7 +14,7 @@ type manager struct {
 	//inflight        int64
 	//success, failed int64
 	pool sync.Pool
-	*builder
+	req  *http.Request
 }
 
 func (m *manager) getClient() *http.Client {
@@ -36,7 +37,9 @@ func (m *manager) Fetch(ret interface{}) (err error) {
 	var resp *http.Response
 	cli := m.getClient()
 	defer m.closeClient(cli, err)
-	if resp, err = cli.Do(m.builder.request); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	if resp, err = cli.Do(m.req.Clone(ctx)); err != nil {
 		goto ERR
 	}
 	if err = m.Bind(resp, ret); err != nil {
