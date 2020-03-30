@@ -12,7 +12,7 @@ const (
 	contentTypeKey = "Content-Type"
 )
 
-func (m manager) Bind(response *http.Response, bean interface{}) error {
+func (_ fetcher) Bind(response *http.Response, bean interface{}) error {
 	contentType := response.Header.Get(contentTypeKey)
 	b := binding.Get(contentType)
 	if b == nil {
