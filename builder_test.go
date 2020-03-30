@@ -39,7 +39,7 @@ func TestManager_Fetch(t *testing.T) {
 	if err := f.Fetch(&resp); err != nil {
 		t.Fatal(err)
 	}
-	t.Log(f.(*manager).req)
+	t.Log(resp)
 	var resp2 ResponseBody
 	f.Build(
 		SetBody(strings.NewReader("s2")),
@@ -47,7 +47,8 @@ func TestManager_Fetch(t *testing.T) {
 	if err := f.Fetch(&resp2); err != nil {
 		t.Fatal(err)
 	}
-	t.Log(f.(*manager).req)
+	t.Log(f.(*fetcher).req)
+	t.Log(resp)
 }
 
 func BenchmarkManager_Fetch(b *testing.B) {

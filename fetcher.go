@@ -3,7 +3,6 @@ package fetcher
 import (
 	"context"
 	"net/http"
-	"sync"
 )
 
 type Fetcher interface {
@@ -14,30 +13,18 @@ type FetchBuilder interface {
 	Fetcher
 	Builder
 }
-
-type manager struct {
-	//inflight        int64
-	//success, failed int64
-	pool      sync.Pool
-	req       *http.Request
+type HttpClientPoolManager interface {
+	Get() *http.Client
+	Close(cli *http.Client, err error)
 }
 
-func (m *manager) getClient() *http.Client {
-	client := m.pool.Get()
-	cli, ok := client.(*http.Client)
-	if !ok {
-		cli = &http.Client{}
-	}
-	// todo decorate cli
-	return cli
+type fetcher struct {
+	HttpClientPoolManager
+	req *http.Request
 }
 
-func (m *manager) closeClient(cli *http.Client, err error) {
-	// todo clean cli
-	m.pool.Put(cli)
-}
+func (m *fetcher) Build(modifiers ...Modifier) FetchBuilder {
 
-func (m *manager) Build(modifiers ...Modifier) FetchBuilder {
 	for _, modifierFn := range modifiers {
 		if err := modifierFn(m.req); err != nil {
 			return nil
@@ -45,11 +32,11 @@ func (m *manager) Build(modifiers ...Modifier) FetchBuilder {
 	}
 	return m
 }
-func (m *manager) Fetch(ret interface{}) (err error) {
+func (m *fetcher) Fetch(ret interface{}) (err error) {
 	//atomic.AddInt64(&m.inflight, 1)
 	var resp *http.Response
-	cli := m.getClient()
-	defer m.closeClient(cli, err)
+	cli := m.Get()
+	defer m.Close(cli, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	if resp, err = cli.Do(m.req.Clone(ctx)); err != nil {
@@ -68,5 +55,5 @@ ERR:
 }
 
 var (
-	_ Fetcher = &manager{}
+	_ FetchBuilder = &fetcher{}
 )

@@ -18,6 +18,22 @@ type Builder interface {
 }
 
 type builder struct {
+	pool sync.Pool
+}
+
+func (b *builder) Get() *http.Client {
+	client := b.pool.Get()
+	cli, ok := client.(*http.Client)
+	if !ok {
+		cli = &http.Client{}
+	}
+	// todo decorate cli
+	return cli
+}
+
+func (b *builder) Close(cli *http.Client, err error) {
+	// todo clean cli
+	b.pool.Put(cli)
 }
 
 func (b *builder) Build(modifiers ...Modifier) FetchBuilder {
@@ -33,10 +49,7 @@ func (b *builder) Build(modifiers ...Modifier) FetchBuilder {
 			return nil
 		}
 	}
-	fetcher := manager{req: req, pool: sync.Pool{New: func() interface{} {
-		return &http.Client{}
-	}}}
-	return &fetcher
+	return &fetcher{HttpClientPoolManager: b, req: req}
 }
 
 // Method with check
@@ -75,7 +88,9 @@ func SetMethod(m string) Modifier {
 }
 
 func NewBuilder() Builder {
-	return &builder{}
+	return &builder{pool: sync.Pool{New: func() interface{} {
+		return &http.Client{}
+	}}}
 }
 
 // Url together
